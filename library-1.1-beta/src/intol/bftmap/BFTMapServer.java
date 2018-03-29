@@ -2,7 +2,7 @@
  * BFT Map implementation (server side).
  *
  */
-package intol.bftmap;
+package bftmap;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -68,6 +68,18 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
                         reply = byteOut.toByteArray();
                     }
                     break;
+                    
+                case REMOVE:
+                	
+                	K keyR = (K) objIn.readObject();
+                	
+                	V retR = replicaMap.remove(keyR);
+                	
+                	if (retR != null) {
+                        objOut.writeObject(retR);
+                        reply = byteOut.toByteArray();
+                    }
+                    break;
             }
 
             objOut.flush();
@@ -111,6 +123,23 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
                         reply = byteOut.toByteArray();
                     }
                     break;
+                    
+                case SIZE:
+                	objOut.writeObject(replicaMap.size());
+                	reply = byteOut.toByteArray();
+                	break;
+                	
+                case KEYSET:
+                	objOut.writeObject(replicaMap.size());
+                	replicaMap.keySet().forEach(keyS -> {
+						try {
+							objOut.writeObject(keyS);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					});
+                	reply = byteOut.toByteArray();
+                	break;
             }
 
             objOut.flush();

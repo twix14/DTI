@@ -2,7 +2,7 @@
  * BFT Map implementation (client side).
  *
  */
-package intol.bftmap;
+package bftmap;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -14,6 +14,8 @@ import java.util.Map;
 
 import bftsmart.tom.ServiceProxy;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 public class BFTMap<K, V> implements Map<K, V> {
@@ -54,7 +56,8 @@ public class BFTMap<K, V> implements Map<K, V> {
             ByteArrayInputStream byteIn = new ByteArrayInputStream(rep);
             ObjectInputStream objIn = new ObjectInputStream(byteIn);
 
-            V val = (V) objIn.readObject();
+            @SuppressWarnings("unchecked")
+			V val = (V) objIn.readObject();
 
             objIn.close();
             byteIn.close();
@@ -93,7 +96,8 @@ public class BFTMap<K, V> implements Map<K, V> {
 
             ByteArrayInputStream byteIn = new ByteArrayInputStream(rep);
             ObjectInputStream objIn = new ObjectInputStream(byteIn);
-            V val = (V) objIn.readObject();
+            @SuppressWarnings("unchecked")
+			V val = (V) objIn.readObject();
 
             byteIn.close();
             objIn.close();
@@ -106,17 +110,107 @@ public class BFTMap<K, V> implements Map<K, V> {
 
     @Override
     public int size() {
-        throw new UnsupportedOperationException("You are supposed to call this method :)");
+    	try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
+
+            objOut.writeObject(BFTMapRequestType.SIZE);
+
+            objOut.flush();
+            byteOut.flush();
+
+            //invokes BFT-SMaRt
+            byte[] rep = serviceProxy.invokeUnordered(byteOut.toByteArray());
+
+            objOut.close();
+            byteOut.close();
+
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(rep);
+            ObjectInputStream objIn = new ObjectInputStream(byteIn);
+
+            int size = (int) objIn.readObject();
+
+            objIn.close();
+            byteIn.close();
+
+            return size;
+        } catch (ClassNotFoundException | IOException ex) {
+            return -1;
+        }
     }
 
     @Override
     public V remove(Object key) {
-        throw new UnsupportedOperationException("You are supposed to call this method :)");
+    	try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
+            objOut.writeObject(BFTMapRequestType.REMOVE);
+            objOut.writeObject(key);
+
+            objOut.flush();
+            byteOut.flush();
+
+            byte[] rep = serviceProxy.invokeOrdered(byteOut.toByteArray());
+
+            if (rep.length == 0) {
+                return null;
+            }
+
+            objOut.close();
+            byteOut.close();
+
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(rep);
+            ObjectInputStream objIn = new ObjectInputStream(byteIn);
+            @SuppressWarnings("unchecked")
+			V val = (V) objIn.readObject();
+
+            byteIn.close();
+            objIn.close();
+
+            return val;
+        } catch (ClassNotFoundException | IOException ex) {
+            return null;
+        }
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public Set<K> keySet() {
-        throw new UnsupportedOperationException("You are supposed to call this method :)");
+    	try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
+
+            objOut.writeObject(BFTMapRequestType.KEYSET);
+
+            objOut.flush();
+            byteOut.flush();
+
+            //invokes BFT-SMaRt
+            byte[] rep = serviceProxy.invokeUnordered(byteOut.toByteArray());
+
+            objOut.close();
+            byteOut.close();
+
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(rep);
+            ObjectInputStream objIn = new ObjectInputStream(byteIn);
+
+			int keysetSize = (int) objIn.readObject();
+            
+            Set<K> keySet = new HashSet<K>();
+            for(int i = 0; i < keysetSize; i++) {
+            	K key = (K) objIn.readObject();
+            	keySet.add(key);
+            }
+
+            objIn.close();
+            byteIn.close();
+
+            return keySet;
+            
+        } catch (ClassNotFoundException | IOException ex) {
+            ex.printStackTrace();
+            return Collections.emptySet();
+        }
     }
 
     @Override

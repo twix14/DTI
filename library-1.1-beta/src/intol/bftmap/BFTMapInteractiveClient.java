@@ -2,11 +2,11 @@
  * BFT Map implementation (interactive client).
  *
  */
-package intol.bftmap;
+package bftmap;
 
 import java.io.IOException;
 import java.util.Scanner;
-
+import java.util.Set;
 import java.io.Console;
 
 public class BFTMapInteractiveClient {
@@ -62,15 +62,35 @@ public class BFTMapInteractiveClient {
 
             } else if (cmd.equalsIgnoreCase("KEYSET")) {
 
-                System.out.println("\tYou are supposed to call this command :)\n");
+                 //invokes the op on the servers
+                 Set<Integer> keyset = bftMap.keySet();
+                 
+                 System.out.println("Set of keys:\n");
+                 keyset.forEach(key -> System.out.println(key + "\n"));
 
             } else if (cmd.equalsIgnoreCase("REMOVE")) {
 
-                System.out.println("\tYou are supposed to call this command :)\n");
+            	int key = 0;
+                try {
+                    key = Integer.parseInt(console.readLine("Enter a numeric key: "));
+                } catch (NumberFormatException e) {
+                    System.out.println("\tThe key is supposed to be an integer!\n");
+                    continue;
+                }
+                
+                //invokes the op on the servers
+                String value = bftMap.remove(key);
+
+                System.out.println("\nValue ("+ value + ") associated with " + key 
+                		+ " has been removed" + "\n");
 
             } else if (cmd.equalsIgnoreCase("SIZE")) {
 
-                System.out.println("\tYou are supposed to call this command :)\n");
+                //invokes the op on the servers
+                int size = bftMap.size();
+
+                System.out.println("\nThe size of the key value store is " + size + "\n");
+
 
             } else if (cmd.equalsIgnoreCase("EXIT")) {
 
