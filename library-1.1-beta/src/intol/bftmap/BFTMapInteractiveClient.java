@@ -5,8 +5,11 @@
 package bftmap;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.TreeMap;
 import java.io.Console;
 
 public class BFTMapInteractiveClient {
@@ -92,8 +95,64 @@ public class BFTMapInteractiveClient {
                 System.out.println("\nThe size of the key value store is " + size + "\n");
 
 
-            } else if (cmd.equalsIgnoreCase("EXIT")) {
+            } else if (cmd.equalsIgnoreCase("CONTAINSKEY")) {
+            	
+            	int key = 0;
+                try {
+                    key = Integer.parseInt(console.readLine("Enter a numeric key: "));
+                } catch (NumberFormatException e) {
+                    System.out.println("\tThe key is supposed to be an integer!\n");
+                    continue;
+                }
+                
+                //invokes the op on the servers
+                System.out.println("The key " + key + (bftMap.containsKey(key)? "exists" : "does"
+                		+ "not exist")); 
+            	
+            } else if (cmd.equalsIgnoreCase("CLEAR")) {
+            	
+            	bftMap.clear();
+            	System.out.println("The keystore is now clear, do a keyset or another search"
+            			+ " operation to see if the clean operation was done successfully");
+            	
+            } else if (cmd.equalsIgnoreCase("PUTALL")) {
+            	
+            	int entries = 0;
+                try {
+                    entries = Integer.parseInt(console.readLine("Number of entries to add: "));
+                } catch (NumberFormatException e) {
+                    System.out.println("\tThe number of entries is supposed to be an integer!\n");
+                    continue;
+                }
+                
+                Map<Integer, String> m = new TreeMap<Integer, String>();
+                for(int i = 0; i < entries; i++) {
+                	int key = 0;
+                    try {
+                        key = Integer.parseInt(console.readLine("Enter a numeric key: "));
+                    } catch (NumberFormatException e) {
+                        System.out.println("\tThe key is supposed to be an integer!\n");
+                        continue;
+                    }
+                    String value = console.readLine("Enter an alpha-numeric value: ");
 
+                    //invokes the op on the servers
+                    m.put(key, value);
+                }
+                
+                bftMap.putAll(m);
+            	
+            	
+        	} else if (cmd.equalsIgnoreCase("ENTRYSET")) {
+        		
+        		//invokes the op on the servers
+                Set<Entry<Integer, String>> entrySet = bftMap.entrySet();
+                
+                System.out.println("Set of entries:\n");
+                entrySet.forEach(entry -> System.out.println(entry + "\n"));
+        		
+        	} else  if (cmd.equalsIgnoreCase("EXIT")) {
+        		
                 System.out.println("\tEXIT: Bye bye!\n");
                 System.exit(0);
 

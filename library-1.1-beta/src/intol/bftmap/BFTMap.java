@@ -215,7 +215,34 @@ public class BFTMap<K, V> implements Map<K, V> {
 
     @Override
     public boolean containsKey(Object key) {
-        throw new UnsupportedOperationException("You are supposed to implement this method :)");
+    	try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
+
+            objOut.writeObject(BFTMapRequestType.CONTAINSKEY);
+            objOut.writeObject(key);
+
+            objOut.flush();
+            byteOut.flush();
+
+            //invokes BFT-SMaRt
+            byte[] rep = serviceProxy.invokeUnordered(byteOut.toByteArray());
+
+            objOut.close();
+            byteOut.close();
+
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(rep);
+            ObjectInputStream objIn = new ObjectInputStream(byteIn);
+
+            boolean contains = (boolean) objIn.readObject();
+
+            objIn.close();
+            byteIn.close();
+
+            return contains;
+        } catch (ClassNotFoundException | IOException ex) {
+            return false;
+        }
     }
 
     @Override
@@ -225,7 +252,22 @@ public class BFTMap<K, V> implements Map<K, V> {
 
     @Override
     public void clear() {
-        throw new UnsupportedOperationException("You are supposed to implement this method :)");
+    	try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
+            objOut.writeObject(BFTMapRequestType.CLEAR);
+
+            objOut.flush();
+            byteOut.flush();
+
+            serviceProxy.invokeOrdered(byteOut.toByteArray());
+            
+            objOut.close();
+            byteOut.close();
+            
+        } catch (IOException ex) {
+            return;
+        }
     }
 
     @Override
@@ -235,7 +277,34 @@ public class BFTMap<K, V> implements Map<K, V> {
 
     @Override
     public void putAll(Map<? extends K, ? extends V> m) {
-        throw new UnsupportedOperationException("You are supposed to implement this method :)");
+    	try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
+            objOut.writeObject(BFTMapRequestType.PUTALL);
+            objOut.writeInt(m.size()); //number of entries
+            
+            m.entrySet().forEach(entry -> 
+            		{
+						try {
+							objOut.writeObject(entry.getKey());
+							objOut.writeObject(entry.getValue());
+						} catch (IOException e) {
+							e.printStackTrace();
+							return;
+						}
+					});
+
+            objOut.flush();
+            byteOut.flush();
+
+            serviceProxy.invokeOrdered(byteOut.toByteArray());
+            
+            objOut.close();
+            byteOut.close();
+            
+        } catch (IOException ex) {
+            return;
+        }
     }
 
     @Override
@@ -245,6 +314,43 @@ public class BFTMap<K, V> implements Map<K, V> {
 
     @Override
     public Set<Entry<K, V>> entrySet() {
-        throw new UnsupportedOperationException("You are supposed to implement this method :)");
+    	try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
+
+            objOut.writeObject(BFTMapRequestType.ENTRYSET);
+
+            objOut.flush();
+            byteOut.flush();
+
+            //invokes BFT-SMaRt
+            byte[] rep = serviceProxy.invokeUnordered(byteOut.toByteArray());
+
+            objOut.close();
+            byteOut.close();
+
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(rep);
+            ObjectInputStream objIn = new ObjectInputStream(byteIn);
+
+			int keysetSize = (int) objIn.readObject();
+            
+            Set<Entry<K,V>> keySet = new HashSet<Entry<K,V>>();
+            for(int i = 0; i < keysetSize; i++) {
+            	
+            	K key = (K) objIn.readObject();
+            	V value = (V) objIn.readObject();
+            		
+            	keySet.add(new MyEntry<K,V>(key, value));
+            }
+
+            objIn.close();
+            byteIn.close();
+
+            return keySet;
+            
+        } catch (ClassNotFoundException | IOException ex) {
+            ex.printStackTrace();
+            return Collections.emptySet();
+        }
     }
 }

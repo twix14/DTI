@@ -39,7 +39,8 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
         new BFTMapServer<Integer, String>(Integer.parseInt(args[0]));
     }
 
-    @Override
+    @SuppressWarnings("unchecked")
+	@Override
     public byte[] appExecuteOrdered(byte[] command, MessageContext msgCtx) {
         try {
 
@@ -80,6 +81,20 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
                         reply = byteOut.toByteArray();
                     }
                     break;
+                    
+                case CLEAR:
+                	
+                	replicaMap.clear();
+                	
+                case PUTALL:
+                	
+                	int size = objIn.readInt();
+                	for(int i = 0; i < size; i++) {
+                		K keyP = (K) objIn.readObject();
+                		V valueP = (V) objIn.readObject();
+                		replicaMap.put(keyP, valueP);
+                	}
+                	break;
             }
 
             objOut.flush();
@@ -97,7 +112,8 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
         }
     }
 
-    @Override
+	@SuppressWarnings("unchecked")
+	@Override
     public byte[] appExecuteUnordered(byte[] command, MessageContext msgCtx) {
         try {
             ByteArrayInputStream byteIn = new ByteArrayInputStream(command);
@@ -110,11 +126,12 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
             BFTMapRequestType cmd = (BFTMapRequestType) objIn.readObject();
 
             System.out.println("Ordered execution of a "+cmd+" from "+msgCtx.getSender());
-            
+            K key;
             switch (cmd) {
                 //read operations on the map
+            	
                 case GET:
-                    K key = (K) objIn.readObject();
+                    key = (K) objIn.readObject();
 
                     V ret = replicaMap.get(key);
 
@@ -134,6 +151,25 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
                 	replicaMap.keySet().forEach(keyS -> {
 						try {
 							objOut.writeObject(keyS);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					});
+                	reply = byteOut.toByteArray();
+                	break;
+                case CONTAINSKEY:
+                	key = (K) objIn.readObject();
+                	objOut.writeObject(replicaMap.containsKey(key));
+                	reply = byteOut.toByteArray();
+                	break;
+                	
+                case ENTRYSET:
+                	objOut.writeObject(replicaMap.size());
+                	replicaMap.entrySet().forEach(entry -> {
+						try {
+							objOut.writeObject(entry.getKey());
+							objOut.writeObject(entry.getValue());
+							
 						} catch (IOException e) {
 							e.printStackTrace();
 						}
