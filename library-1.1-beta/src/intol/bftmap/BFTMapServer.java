@@ -140,7 +140,25 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
 					});
                 	reply = byteOut.toByteArray();
                 	break;
+
+                case ISEMPTY:
+                    objOut.writeBoolean(replicaMap.isEmpty());
+                    reply = byteOut.toByteArray();
+                    break;
+
+                case CONSTAINSV:
+                    V val = (V) objIn.readObject();
+                    objOut.writeBoolean(replicaMap.containsValue(val));
+                    reply = byteOut.toByteArray();
+                    break;
+
+                case VALUES:
+                    objOut.writeObject(replicaMap.values());
+                    reply = byteOut.toByteArray();
+                    break;
             }
+
+
 
             objOut.flush();
             byteOut.flush();

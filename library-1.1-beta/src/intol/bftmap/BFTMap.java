@@ -220,7 +220,35 @@ public class BFTMap<K, V> implements Map<K, V> {
 
     @Override
     public boolean isEmpty() {
-        throw new UnsupportedOperationException("You are supposed to implement this method :)");
+        try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
+            objOut.writeObject(BFTMapRequestType.ISEMPTY);
+
+            objOut.flush();
+            byteOut.flush();
+
+            byte[] rep = serviceProxy.invokeUnordered(byteOut.toByteArray());
+
+            if (rep.length == 0) {
+                return false;
+            }
+
+            objOut.close();
+            byteOut.close();
+
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(rep);
+            ObjectInputStream objIn = new ObjectInputStream(byteIn);
+            @SuppressWarnings("unchecked")
+			boolean val = objIn.readBoolean();
+
+            byteIn.close();
+            objIn.close();
+
+            return val;
+        } catch (IOException ex) {
+            return false;
+        }
     }
 
     @Override
@@ -230,7 +258,36 @@ public class BFTMap<K, V> implements Map<K, V> {
 
     @Override
     public boolean containsValue(Object value) {
-        throw new UnsupportedOperationException("You are supposed to implement this method :)");
+        try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
+            objOut.writeObject(BFTMapRequestType.CONSTAINSV);
+            objOut.writeObject(value);
+
+            objOut.flush();
+            byteOut.flush();
+
+            byte[] rep = serviceProxy.invokeUnordered(byteOut.toByteArray());
+
+            if (rep.length == 0) {
+                return false;
+            }
+
+            objOut.close();
+            byteOut.close();
+
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(rep);
+            ObjectInputStream objIn = new ObjectInputStream(byteIn);
+            @SuppressWarnings("unchecked")
+            boolean val = objIn.readBoolean();
+
+            byteIn.close();
+            objIn.close();
+
+            return val;
+        } catch (IOException ex) {
+            return false;
+        }
     }
 
     @Override
@@ -240,7 +297,35 @@ public class BFTMap<K, V> implements Map<K, V> {
 
     @Override
     public Collection<V> values() {
-        throw new UnsupportedOperationException("You are supposed to implement this method :)");
+        try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            ObjectOutputStream objOut = new ObjectOutputStream(byteOut);
+            objOut.writeObject(BFTMapRequestType.VALUES);
+
+            objOut.flush();
+            byteOut.flush();
+
+            byte[] rep = serviceProxy.invokeUnordered(byteOut.toByteArray());
+
+            if (rep.length == 0) {
+                return null;
+            }
+
+            objOut.close();
+            byteOut.close();
+
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(rep);
+            ObjectInputStream objIn = new ObjectInputStream(byteIn);
+            @SuppressWarnings("unchecked")
+            Collection<V> val = (Collection<V>) objIn.readObject();
+
+            byteIn.close();
+            objIn.close();
+
+            return val;
+        } catch (ClassNotFoundException | IOException ex) {
+            return null;
+        }
     }
 
     @Override
