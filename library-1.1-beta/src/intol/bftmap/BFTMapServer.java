@@ -18,6 +18,7 @@ import java.util.TreeMap;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
+import zk.FolderInfo;
 
 public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
 
@@ -63,7 +64,7 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
                     V value = (V) objIn.readObject();
 
                     V ret = replicaMap.put(key, value);
-
+                    
                     if (ret != null) {
                         objOut.writeObject(ret);
                         reply = byteOut.toByteArray();
@@ -189,9 +190,16 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
                     break;
 
                 case VALUES:
-                    objOut.writeObject(replicaMap.values());
-                    reply = byteOut.toByteArray();
-                    break;
+                	objOut.writeObject(replicaMap.size());
+                	replicaMap.values().forEach(val2 -> {
+						try {
+							objOut.writeObject(val2);
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					});
+                	reply = byteOut.toByteArray();
+                	break;
             }
 
 

@@ -13,6 +13,8 @@ import java.io.ObjectOutputStream;
 import java.util.Map;
 
 import bftsmart.tom.ServiceProxy;
+
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -386,12 +388,19 @@ public class BFTMap<K, V> implements Map<K, V> {
             ByteArrayInputStream byteIn = new ByteArrayInputStream(rep);
             ObjectInputStream objIn = new ObjectInputStream(byteIn);
             @SuppressWarnings("unchecked")
-            Collection<V> val = (Collection<V>) objIn.readObject();
+            
+            int keysetSize = (int) objIn.readObject();
+            
+            Collection<V> keySet = new ArrayList<>(keysetSize);
+            for(int i = 0; i < keysetSize; i++) {
+            	V val = (V) objIn.readObject();
+            	keySet.add(val);
+            }
 
             byteIn.close();
             objIn.close();
 
-            return val;
+            return keySet;
         } catch (ClassNotFoundException | IOException ex) {
             return null;
         }
