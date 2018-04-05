@@ -16,23 +16,26 @@ public class Zookeeper {
 		
 		FolderInfo<byte []> fi = new FolderInfo<>(seq, ephe, watch, data);
 		
-		map.put(path, fi.toByteArray());
-		
 		if(path.indexOf("/") != -1) {
 			int iparent = path.lastIndexOf("/"); 
 			String parent = path.substring(0, iparent);
 			
 			FolderInfo<byte []> parentFI = new FolderInfo<byte []>(map.get(parent));
-			parentFI.addChild(path);
 			
 			if(parentFI.isSequential()) {
 				parentFI.incSeq();
+				parentFI.addChild(path + "_" + parentFI.getSeq());
+				map.put(path + "_" + parentFI.getSeq(), fi.toByteArray());
+			} else {
+				parentFI.addChild(path);
 			}
 			updateNode(parent, parentFI.toByteArray());
 			System.out.println(getNode(path));
 			System.out.println(getNode(parent));
 			//TODO APAGAR ISTO
 			return true;
+		} else {
+			map.put(path, fi.toByteArray());
 		}
 			
 				
