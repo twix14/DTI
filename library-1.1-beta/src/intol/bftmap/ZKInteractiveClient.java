@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
+import zk.NodeInfo;
 import zk.Zookeeper;
 
 public class ZKInteractiveClient {
@@ -19,38 +20,43 @@ public class ZKInteractiveClient {
         Scanner sc = new Scanner(System.in);
 
         System.out.println("\nCommands:\n");
-        System.out.println("\tcreate: Cria um nó no Zookeeper");
-        System.out.println("\tGET: Retrieve value from the map");
-        System.out.println("\tSIZE: Retrieve the size of the map");
-        System.out.println("\tREMOVE: Removes the value associated with the supplied key");
-        System.out.println("\tKEYSET: List all keys available in the table");
-        System.out.println("\tEXIT: Terminate this client\n");
+        System.out.println("\tCREATE: CREATES A NODE IN THE ZOOKEEPER NAMESPACE");
+        System.out.println("\tTO CREATE A NODE USE THE '/' SLASH TO DEFINE THE PATH\n");
+        System.out.println("\tGET: SHOWS THE NODEINFORMATION PRESENT IN ZOOKEEPER");
+        System.out.println("\tREMOVE: REMOVES THE NODE FROM ZOOKEEPER");
+        System.out.println("\tPRINT: PRINTS ALL THE NAMESPACE");
+        System.out.println("\tEXIT: TERMINATE THIS CLIENT\n");
 
         while (true) {
             String cmd = console.readLine("\n  > ");
 
             if (cmd.equalsIgnoreCase("create")) {
-                String path = console.readLine("Ponha o path: ");
-                String data = console.readLine("Ponha os dados: ");
-                boolean eph = console.readLine("Quer ephemeral (s/n): ").equals("s");
-                boolean seq = console.readLine("Quer sequential (s/n): ").equals("s");
-                boolean watch = console.readLine("Quer um watch (s/n): ").equals("s");
+                String path = console.readLine("Path: ");
+                String data = console.readLine("Data: ");
+                boolean eph = console.readLine("Ephemeral (Y/N): ").equalsIgnoreCase("y");
+                boolean seq = console.readLine("Sequential (Y/N): ").equalsIgnoreCase("y");
+                boolean watch = console.readLine("Watcher (Y/N): ").equalsIgnoreCase("y");
 
-                //invokes the op on the servers
-                zk.createNode(path, data.getBytes(), seq, eph, watch);
-
-                System.out.println("\nadicionado nó no ZK\n");
+                System.out.println(zk.createNode(path, data.getBytes(), seq, eph, watch)? "Node added to Zookeeper" :
+                	"The node already exists or there was a problem");
             } else if (cmd.equalsIgnoreCase("remove")) {
 
-            	 String path = console.readLine("Ponha o path: ");
-            	 zk.removeNode(path);
+            	 String path = console.readLine("Path: ");
+            	 System.out.println(zk.removeNode(path) ? "Node was removed successfully" : 
+            		 "The node doesn't exist or there was a problem");
 
-            } else if (cmd.equalsIgnoreCase("GET")) {
+            } else if (cmd.equalsIgnoreCase("get")) {
 
             	String path = console.readLine("Ponha o path: ");
-           	 	System.out.println(zk.getNode(path));
+            	NodeInfo<byte[]> node = zk.getNode(path);
+            	System.out.println(node != null ? node : "The node doesn't exist or there was a problem");
 
-            } /*else if (cmd.equalsIgnoreCase("REMOVE")) {
+            } else if (cmd.equalsIgnoreCase("print")) {
+            	
+            	zk.printNameSpace();
+            	
+            }	/*} else if (cmd.equalsIgnoreCase("REMOVE")) {
+            
 
             	int key = 0;
                 try {

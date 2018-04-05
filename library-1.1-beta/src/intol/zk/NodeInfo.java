@@ -8,7 +8,7 @@ import java.io.ObjectOutputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-public class FolderInfo<V> {
+public class NodeInfo<V> {
 
 	private boolean sequential;
 	private int seq;
@@ -17,7 +17,7 @@ public class FolderInfo<V> {
 	private V data;
 	private boolean watch;
 
-	public FolderInfo(boolean sequential, boolean ephemeral, boolean watch, V data) {
+	public NodeInfo(boolean sequential, boolean ephemeral, boolean watch, V data) {
 		this.setSequential(sequential);
 		this.setEphemeral(ephemeral);
 		children = new LinkedList<>();
@@ -26,7 +26,7 @@ public class FolderInfo<V> {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public FolderInfo(byte[] byteArray) {
+	public NodeInfo(byte[] byteArray) {
 		ByteArrayInputStream byteIn = new ByteArrayInputStream(byteArray);
         ObjectInputStream objIn;
 		try {
@@ -120,7 +120,7 @@ public class FolderInfo<V> {
 	@Override
 	public String toString() {
 		return "FolderInfo [sequential=" + sequential + ", seq=" + seq + ", ephemeral=" + ephemeral + ", children="
-				+ children + ", data=" + data + ", watch=" + watch + "]";
+				+ children + ", data=" + data + "], watch=" + watch + "]";
 	}
 	
 
