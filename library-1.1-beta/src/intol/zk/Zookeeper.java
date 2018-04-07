@@ -2,24 +2,33 @@ package zk;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import bftmap.BFTMap;
 
 public class Zookeeper {
 
 	private BFTMap<String, byte []> map;
+	private BlockingQueue<NodeInfo<byte[]>> bq;
 
-	public Zookeeper(BFTMap<String, byte []> map) {
+	public Zookeeper(BFTMap<String, byte []> map, BlockingQueue<String> msgs) {
 		this.map = map;
+		bq = new LinkedBlockingQueue<>();
+
+		ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+		executor.scheduleAtFixedRate(new Watcher(map, bq, msgs), 0, 1, TimeUnit.SECONDS);
 	}
 
-	public boolean createNode(String path, byte [] data, boolean seq, boolean ephe, boolean watch) {
+	public boolean createNode(String path, byte [] data, boolean seq, boolean ephe) {
 		
 		if(map.get(path) != null)
 			return false;
 
-		NodeInfo<byte []> fi = new NodeInfo<>(seq, ephe, watch, data);
+		NodeInfo<byte []> fi = new NodeInfo<>(path, seq, ephe, data);
 
 		if(path.indexOf("/") != -1) {
 			int iparent = path.lastIndexOf("/"); 
@@ -40,10 +49,8 @@ public class Zookeeper {
 			return true;
 		} else {
 			map.put(path, fi.toByteArray());
+			return true;
 		}
-
-
-		return false;
 	}
 
 	public NodeInfo<byte[]> getNode(String path){
@@ -59,6 +66,17 @@ public class Zookeeper {
 			return true;
 		}
 		return false;
+	}
+	
+	public void addWatcher(String path) {
+		NodeInfo<byte[]> node = getNode(path);
+		node.setWatcher();
+		updateNode(path, node.toByteArray());
+		try {
+			bq.put(node);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public boolean removeNode(String path) {
@@ -152,5 +170,7 @@ public class Zookeeper {
 	private boolean isLeaf(NodeInfo<byte[]> node) {
 		return node.getChildren().isEmpty();
 	}
+
+	
 
 }

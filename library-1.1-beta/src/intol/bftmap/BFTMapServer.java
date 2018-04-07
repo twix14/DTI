@@ -18,7 +18,6 @@ import java.util.TreeMap;
 import bftsmart.tom.MessageContext;
 import bftsmart.tom.ServiceReplica;
 import bftsmart.tom.server.defaultservices.DefaultSingleRecoverable;
-import zk.FolderInfo;
 
 public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
 

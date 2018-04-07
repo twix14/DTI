@@ -16,17 +16,23 @@ public class NodeInfo<V> {
 	private List<String> children;
 	private V data;
 	private boolean watch;
+	private String name;
 
-	public NodeInfo(boolean sequential, boolean ephemeral, boolean watch, V data) {
+	public String getName() {
+		return name;
+	}
+
+	public NodeInfo(String name, boolean sequential, boolean ephemeral, V data) {
 		this.setSequential(sequential);
 		this.setEphemeral(ephemeral);
 		children = new LinkedList<>();
 		this.data = data;
-		this.watch = watch;
+		this.name = name;
 	}
 	
 	@SuppressWarnings("unchecked")
 	public NodeInfo(byte[] byteArray) {
+		
 		ByteArrayInputStream byteIn = new ByteArrayInputStream(byteArray);
         ObjectInputStream objIn;
 		try {
@@ -42,6 +48,7 @@ public class NodeInfo<V> {
 	        }
 	        this.watch = objIn.readBoolean();
 	        data = (V) objIn.readObject();
+	        this.name = (String) objIn.readObject();
 
 	        byteIn.close();
 	        objIn.close();
@@ -50,6 +57,14 @@ public class NodeInfo<V> {
 		}
 
         
+	}
+	
+	public void setWatcher() {
+		watch = true;
+	}
+	
+	public void removeWatcher() {
+		watch = false;
 	}
 	
 	public List<String> getChildren(){
@@ -107,6 +122,7 @@ public class NodeInfo<V> {
 			});
 			objOut.writeBoolean(watch);
 			objOut.writeObject(data);
+			objOut.writeObject(name);
 
 			objOut.flush();
 			byteOut.flush();
@@ -121,6 +137,21 @@ public class NodeInfo<V> {
 	public String toString() {
 		return "FolderInfo [sequential=" + sequential + ", seq=" + seq + ", ephemeral=" + ephemeral + ", children="
 				+ children + ", data=" + data + "], watch=" + watch + "]";
+	}
+
+	public boolean equalsN(NodeInfo<V> other) {
+		if (children == null) {
+			if (other.children != null)
+				return false;
+		} else if (children.size() != other.children.size())
+			return false;
+		/*
+		if (data == null) {
+			if (other.data != null)
+				return false;
+		} else if (!data.equals(other.data))
+			return false;*/
+		return true;
 	}
 	
 

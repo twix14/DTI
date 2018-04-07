@@ -1,11 +1,10 @@
 package bftmap;
 
 import java.io.Console;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.Map.Entry;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import zk.NodeInfo;
 import zk.Zookeeper;
@@ -14,49 +13,80 @@ public class ZKInteractiveClient {
 
 	public static void main(String[] args) {
 		int clientId = (args.length > 0) ? Integer.parseInt(args[0]) : 1001;
-		Zookeeper zk = new Zookeeper(new BFTMap<>(clientId));
-		
+		BlockingQueue<String> msgs = new LinkedBlockingQueue<>();
+		Zookeeper zk = new Zookeeper(new BFTMap<>(clientId), msgs);
+
 		Console console = System.console();
-        Scanner sc = new Scanner(System.in);
 
-        System.out.println("\nCommands:\n");
-        System.out.println("\tCREATE: CREATES A NODE IN THE ZOOKEEPER NAMESPACE");
-        System.out.println("\tTO CREATE A NODE USE THE '/' SLASH TO DEFINE THE PATH\n");
-        System.out.println("\tGET: SHOWS THE NODEINFORMATION PRESENT IN ZOOKEEPER");
-        System.out.println("\tREMOVE: REMOVES THE NODE FROM ZOOKEEPER");
-        System.out.println("\tPRINT: PRINTS ALL THE NAMESPACE");
-        System.out.println("\tEXIT: TERMINATE THIS CLIENT\n");
+		/*ExecutorService ex = Executors.newSingleThreadExecutor();
 
-        while (true) {
-            String cmd = console.readLine("\n  > ");
+		Runnable task = () -> {
+			while(true) {
+				while(!msgs.isEmpty())
+					try {
+						System.out.println(msgs.take() + "\n");
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+			}
+		};
 
-            if (cmd.equalsIgnoreCase("create")) {
-                String path = console.readLine("Path: ");
-                String data = console.readLine("Data: ");
-                boolean eph = console.readLine("Ephemeral (Y/N): ").equalsIgnoreCase("y");
-                boolean seq = console.readLine("Sequential (Y/N): ").equalsIgnoreCase("y");
-                boolean watch = console.readLine("Watcher (Y/N): ").equalsIgnoreCase("y");
+		ex.execute(task);*/
 
-                System.out.println(zk.createNode(path, data.getBytes(), seq, eph, watch)? "Node added to Zookeeper" :
-                	"The node already exists or there was a problem");
-            } else if (cmd.equalsIgnoreCase("remove")) {
+		System.out.println("\nCommands:\n");
+		System.out.println("\tCREATE: CREATES A NODE IN THE ZOOKEEPER NAMESPACE");
+		System.out.println("\tTO CREATE A NODE USE THE '/' SLASH TO DEFINE THE PATH\n");
+		System.out.println("\tGET: SHOWS THE NODEINFORMATION PRESENT IN ZOOKEEPER");
+		System.out.println("\tREMOVE: REMOVES THE NODE FROM ZOOKEEPER");
+		System.out.println("\tPRINT: PRINTS ALL THE NAMESPACE");
+		System.out.println("\tWATCHER: PLACES A WATCHER ON THE NODE");
+		System.out.println("\tEXIT: TERMINATE THIS CLIENT\n");
 
-            	 String path = console.readLine("Path: ");
-            	 System.out.println(zk.removeNode(path) ? "Node was removed successfully" : 
-            		 "The node doesn't exist or there was a problem");
 
-            } else if (cmd.equalsIgnoreCase("get")) {
+		while (true) {
+			while(!msgs.isEmpty()) {
+				try {
+					System.out.println(msgs.take() + "\n");
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			String cmd = console.readLine("\n  > ");
 
-            	String path = console.readLine("Ponha o path: ");
-            	NodeInfo<byte[]> node = zk.getNode(path);
-            	System.out.println(node != null ? node : "The node doesn't exist or there was a problem");
+			if (cmd.equalsIgnoreCase("create")) {
+				String path = console.readLine("Path: ");
+				String data = console.readLine("Data: ");
+				boolean eph = console.readLine("Ephemeral (Y/N): ").equalsIgnoreCase("y");
+				boolean seq = console.readLine("Sequential (Y/N): ").equalsIgnoreCase("y");
 
-            } else if (cmd.equalsIgnoreCase("print")) {
-            	
-            	zk.printNameSpace();
-            	
-            }	/*} else if (cmd.equalsIgnoreCase("REMOVE")) {
-            
+				System.out.println(zk.createNode(path, data.getBytes(), seq, eph)? "Node added to Zookeeper" :
+						"The node already exists or there was a problem");
+			} else if (cmd.equalsIgnoreCase("remove")) {
+
+				String path = console.readLine("Path: ");
+				System.out.println(zk.removeNode(path) ? "Node was removed successfully" : 
+						"The node doesn't exist or there was a problem");
+
+			} else if (cmd.equalsIgnoreCase("get")) {
+
+				String path = console.readLine("Ponha o path: ");
+				NodeInfo<byte[]> node = zk.getNode(path);
+				System.out.println(node != null ? node : "The node doesn't exist or there was a problem");
+
+			} else if (cmd.equalsIgnoreCase("print")) {
+
+				zk.printNameSpace();
+
+			} else if (cmd.equalsIgnoreCase("watcher")) {
+
+				String path = console.readLine("Path: ");
+				zk.addWatcher(path);
+			}
+
+			/*} else if (cmd.equalsIgnoreCase("REMOVE")) {
+
+
 
             	int key = 0;
                 try {
@@ -65,7 +95,7 @@ public class ZKInteractiveClient {
                     System.out.println("\tThe key is supposed to be an integer!\n");
                     continue;
                 }
-                
+
                 //invokes the op on the servers
                 String value = bftMap.remove(key);
 
@@ -81,7 +111,7 @@ public class ZKInteractiveClient {
 
 
             } else if (cmd.equalsIgnoreCase("CONTAINSKEY")) {
-            	
+
             	int key = 0;
                 try {
                     key = Integer.parseInt(console.readLine("Enter a numeric key: "));
@@ -89,19 +119,19 @@ public class ZKInteractiveClient {
                     System.out.println("\tThe key is supposed to be an integer!\n");
                     continue;
                 }
-                
+
                 //invokes the op on the servers
                 System.out.println("The key " + key + (bftMap.containsKey(key)? "exists" : "does"
                 		+ "not exist")); 
-            	
+
             } else if (cmd.equalsIgnoreCase("CLEAR")) {
-            	
+
             	bftMap.clear();
             	System.out.println("The keystore is now clear, do a keyset or another search"
             			+ " operation to see if the clean operation was done successfully");
-            	
+
             } else if (cmd.equalsIgnoreCase("PUTALL")) {
-            	
+
             	int entries = 0;
                 try {
                     entries = Integer.parseInt(console.readLine("Number of entries to add: "));
@@ -109,7 +139,7 @@ public class ZKInteractiveClient {
                     System.out.println("\tThe number of entries is supposed to be an integer!\n");
                     continue;
                 }
-                
+
                 Map<Integer, String> m = new TreeMap<Integer, String>();
                 for(int i = 0; i < entries; i++) {
                 	int key = 0;
@@ -124,27 +154,29 @@ public class ZKInteractiveClient {
                     //invokes the op on the servers
                     m.put(key, value);
                 }
-                
+
                 bftMap.putAll(m);
-            	
-            	
+
+
         	} else if (cmd.equalsIgnoreCase("ENTRYSET")) {
-        		
+
         		//invokes the op on the servers
                 Set<Entry<Integer, String>> entrySet = bftMap.entrySet();
-                
+
                 System.out.println("Set of entries:\n");
                 entrySet.forEach(entry -> System.out.println(entry + "\n"));
-        		
-        	}*/ else  if (cmd.equalsIgnoreCase("EXIT")) {
-        		
-                System.out.println("\tEXIT: Bye bye!\n");
-                System.exit(0);
 
-            } else {
-                System.out.println("\tInvalid command :P\n");
-            }
-        }
+        	}*/ else  if (cmd.equalsIgnoreCase("EXIT")) {
+
+        		System.out.println("\tEXIT: Bye bye!\n");
+        		System.exit(0);
+
+        	} else {
+
+        		System.out.println("\tInvalid command :P\n");
+        	}
+
+		}
 
 	}
 
