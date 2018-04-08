@@ -17,6 +17,15 @@ public class NodeInfo<V> {
 	private V data;
 	private boolean watch;
 	private String name;
+	private long timestamp;
+
+	public long getTimestamp() {
+		return timestamp;
+	}
+
+	public void setTimestamp(long timestamp) {
+		this.timestamp = timestamp;
+	}
 
 	public String getName() {
 		return name;
@@ -49,6 +58,7 @@ public class NodeInfo<V> {
 	        this.watch = objIn.readBoolean();
 	        data = (V) objIn.readObject();
 	        this.name = (String) objIn.readObject();
+	        this.timestamp = objIn.readLong();
 
 	        byteIn.close();
 	        objIn.close();
@@ -123,6 +133,7 @@ public class NodeInfo<V> {
 			objOut.writeBoolean(watch);
 			objOut.writeObject(data);
 			objOut.writeObject(name);
+			objOut.writeLong(timestamp);
 
 			objOut.flush();
 			byteOut.flush();
@@ -131,12 +142,6 @@ public class NodeInfo<V> {
 		}
 
 		return byteOut.toByteArray();
-	}
-	
-	@Override
-	public String toString() {
-		return "FolderInfo [sequential=" + sequential + ", seq=" + seq + ", ephemeral=" + ephemeral + ", children="
-				+ children + ", data=" + data + "], watch=" + watch + "]";
 	}
 
 	public boolean equalsN(NodeInfo<V> other) {
@@ -152,6 +157,13 @@ public class NodeInfo<V> {
 		} else if (!data.equals(other.data))
 			return false;*/
 		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "NodeInfo [sequential=" + sequential + ", seq=" + seq + ", ephemeral=" + ephemeral + ", children="
+				+ children + ", data=" + data + ", watch=" + watch + ", name=" + name + ", timestamp=" + timestamp
+				+ "]";
 	}
 	
 

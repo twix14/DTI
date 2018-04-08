@@ -2,6 +2,8 @@ package zk;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -24,11 +26,13 @@ public class Zookeeper {
 	}
 
 	public boolean createNode(String path, byte [] data, boolean seq, boolean ephe) {
-		
+
 		if(map.get(path) != null)
 			return false;
 
 		NodeInfo<byte []> fi = new NodeInfo<>(path, seq, ephe, data);
+		System.out.println(ephe);
+
 
 		if(path.indexOf("/") != -1) {
 			int iparent = path.lastIndexOf("/"); 
@@ -46,11 +50,21 @@ public class Zookeeper {
 			}
 
 			updateNode(parent, parentFI.toByteArray());
-			return true;
-		} else {
+		} else 
 			map.put(path, fi.toByteArray());
-			return true;
+		
+		if(fi.isEphemeral()) {
+			new Timer().schedule(new TimerTask() {
+
+				@Override
+				public void run() {
+					//heartbeat
+					map.put(path, getNode(path).toByteArray());
+				}
+			},0, 1000);
 		}
+
+		return true;
 	}
 
 	public NodeInfo<byte[]> getNode(String path){
@@ -67,7 +81,7 @@ public class Zookeeper {
 		}
 		return false;
 	}
-	
+
 	public void addWatcher(String path) {
 		NodeInfo<byte[]> node = getNode(path);
 		node.setWatcher();
@@ -171,6 +185,6 @@ public class Zookeeper {
 		return node.getChildren().isEmpty();
 	}
 
-	
+
 
 }
