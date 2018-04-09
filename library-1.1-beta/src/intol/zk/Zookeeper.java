@@ -31,19 +31,25 @@ public class Zookeeper {
 			return false;
 
 		NodeInfo<byte []> fi = new NodeInfo<>(path, seq, ephe, data);
-		System.out.println(ephe);
-
+		String pathSeq = null;
+		NodeInfo<byte []> parentFI = null;
 
 		if(path.indexOf("/") != -1) {
 			int iparent = path.lastIndexOf("/"); 
 			String parent = path.substring(0, iparent);
+			byte[] p = map.get(parent);
+			
+			if(p == null)
+				return false;
 
-			NodeInfo<byte []> parentFI = new NodeInfo<byte []>(map.get(parent));
+			parentFI = new NodeInfo<byte []>(p);
 
 			if(parentFI.isSequential()) {
 				parentFI.incSeq();
 				parentFI.addChild(path + "_" + parentFI.getSeq());
-				map.put(path + "_" + parentFI.getSeq(), fi.toByteArray());
+				pathSeq = path + "_" + parentFI.getSeq();
+				fi.setName(pathSeq);
+				map.put(pathSeq, fi.toByteArray());
 			} else {
 				parentFI.addChild(path);
 				map.put(path, fi.toByteArray());
@@ -54,12 +60,14 @@ public class Zookeeper {
 			map.put(path, fi.toByteArray());
 		
 		if(fi.isEphemeral()) {
+			String pathN = parentFI != null && parentFI.isSequential()? pathSeq : path;
+			
 			new Timer().schedule(new TimerTask() {
 
 				@Override
 				public void run() {
 					//heartbeat
-					map.put(path, getNode(path).toByteArray());
+					map.put(pathN, getNode(pathN).toByteArray());
 				}
 			},0, 1000);
 		}
@@ -74,12 +82,21 @@ public class Zookeeper {
 
 	public boolean updateNode(String path, byte [] newData) {
 		if(map.containsKey(path)) {
-			map.remove(path);
 			map.put(path, newData);
-			//TODO MUDAR PARA UMA OPERACAO, REPLACE
 			return true;
 		}
 		return false;
+	}
+	
+	public boolean update(String path, byte[] newData) {
+		byte[] data = map.get(path);
+		
+		if(data == null)
+			return false;
+		
+		NodeInfo<byte[]> node = new NodeInfo<byte[]>(data);
+		node.setData(newData);
+		return updateNode(path, node.toByteArray());
 	}
 
 	public void addWatcher(String path) {

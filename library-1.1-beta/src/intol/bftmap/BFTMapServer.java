@@ -67,7 +67,7 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
 				node = new NodeInfo<byte[]>((byte[])value);
 				if(node.isEphemeral()) {
 					node.setTimestamp(msgCtx.getTimestamp());
-					System.out.println("Heartbeat received in node " + node.getName());
+					System.out.println("Heartbeat received in node " + (String) key);
 				}
 
 				V ret = replicaMap.put(key, (V) node.toByteArray());

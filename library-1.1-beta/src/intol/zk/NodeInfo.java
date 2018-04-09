@@ -10,6 +10,13 @@ import java.util.List;
 
 public class NodeInfo<V> {
 
+	@Override
+	public String toString() {
+		return "NodeInfo [sequential=" + sequential + ", seq=" + seq + ", ephemeral=" + ephemeral + ", children="
+				+ children + ", data=" + new String((byte[])data) + "], watch=" + watch + ", name=" + name + ", timestamp=" + timestamp
+				+ "]";
+	}
+
 	private boolean sequential;
 	private int seq;
 	private boolean ephemeral;
@@ -75,6 +82,10 @@ public class NodeInfo<V> {
 	
 	public void removeWatcher() {
 		watch = false;
+	}
+	
+	public boolean getWatcher() {
+		return watch;
 	}
 	
 	public List<String> getChildren(){
@@ -150,21 +161,24 @@ public class NodeInfo<V> {
 				return false;
 		} else if (children.size() != other.children.size())
 			return false;
-		/*
 		if (data == null) {
 			if (other.data != null)
 				return false;
-		} else if (!data.equals(other.data))
-			return false;*/
+		} else if (!new String((byte[])data).equals(new String((byte[])other.data)))
+			return false;
 		return true;
 	}
+	
+	public V getData() {
+		return data;
+	}
 
-	@Override
-	public String toString() {
-		return "NodeInfo [sequential=" + sequential + ", seq=" + seq + ", ephemeral=" + ephemeral + ", children="
-				+ children + ", data=" + data + ", watch=" + watch + ", name=" + name + ", timestamp=" + timestamp
-				+ "]";
+	public void setData(V data) {
+		this.data = data;
 	}
 	
+	public void setName(String name) {
+		this.name = name;
+	}
 
 }

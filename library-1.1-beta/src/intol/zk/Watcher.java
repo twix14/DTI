@@ -34,16 +34,16 @@ public class Watcher implements Runnable {
 
 			for(int i = 0; i < nodes.size(); i++) {
 				byte[] newNode = map.get(nodes.get(i).getName());
+				NodeInfo<byte[]> node = new NodeInfo<byte[]>(newNode);
 				if(newNode == null) {
 					msgs.put("\nThe node " + nodes.get(i).getName() + " was removed, and the watcher was removed");
 					nodes.remove(i);
-				}else if(!new NodeInfo<byte[]>(newNode).equalsN(nodes.get(i))) {
-					NodeInfo<byte[]> withoutWatcher = new NodeInfo<byte[]>(newNode);
-					msgs.put("\nThe node " + withoutWatcher.getName() 
+				}else if(!(node.equalsN(nodes.get(i)))) {
+					msgs.put("\nThe node " + node.getName() 
 						+ " information has changed, and the watcher was removed");
-					withoutWatcher.removeWatcher();
-					map.remove(withoutWatcher.getName());
-					map.put(withoutWatcher.getName(), withoutWatcher.toByteArray());
+					node.removeWatcher();
+					map.remove(node.getName());
+					map.put(node.getName(), node.toByteArray());
 					nodes.remove(i);
 				}
 			}
