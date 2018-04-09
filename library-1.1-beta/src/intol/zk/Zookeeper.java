@@ -174,6 +174,8 @@ public class Zookeeper {
 		sb.append("\n");
 		for (String child : parent.getChildren()) {
 			NodeInfo<byte[]> childInfo = getNode(child);
+			if(childInfo == null)
+				return;
 			if (!isLeaf(childInfo)) {
 				print(indent + 1, child, childInfo, sb);
 			} else {

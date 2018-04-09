@@ -65,12 +65,25 @@ public class BFTMapServer<K, V> extends DefaultSingleRecoverable {
 				K key = (K) objIn.readObject();
 				V value = (V) objIn.readObject();
 				node = new NodeInfo<byte[]>((byte[])value);
+				V ret = null;
+				
 				if(node.isEphemeral()) {
-					node.setTimestamp(msgCtx.getTimestamp());
-					System.out.println("Heartbeat received in node " + (String) key);
+					long current = msgCtx.getTimestamp();
+					long last = node.getTimestamp();
+					if(current - last < 2000 || last == 0) {
+						node.setTimestamp(msgCtx.getTimestamp());
+						System.out.println("Heartbeat received in node " + (String) key);
+						ret = replicaMap.put(key, (V) node.toByteArray());
+					}else {
+						removeNode((String)key);
+						System.out.println("Node and children removed due "
+								+ "to inactivity of the client");
+					}
+					
+				} else {
+					ret = replicaMap.put(key, (V) node.toByteArray());
 				}
-
-				V ret = replicaMap.put(key, (V) node.toByteArray());
+				
 				
 				if (ret != null) {
 					objOut.writeObject(ret);
