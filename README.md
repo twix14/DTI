@@ -1,4 +1,35 @@
-# DTI
+# Coordination Service using BFT-SMaRt
+This project was made in a masters subject (Detection and Intrusion Tolerance), in the Faculty of Sciences of the University of Lisbon.
+It consists of a coordination service similar to [ZooKeeper](https://github.com/apache/zookeeper) using
+the [BFT-SMaRt replication library](http://bft-smart.github.io/library/)
+
+## Features
+* **Hierarchical namespace**: create "folders" and keys inside "folders". Example, you can create a node named A
+and then associate a value with A/B, being B the key inside A.
+
+* **Sequential nodes**: create nodes using sequential identifiers. Example, if you create node B and C inside folder A
+the name of node B will be B_1 and node C will be C_2
+
+* **Watchers**: a client of this service can register to receive notifications when a node is modified
+(deleted or its value changed). If the watcher is assigned to a folder, the creation of removal
+of nodes inside of the folder will cause a notification. Once a notification is issued, the watcher
+is removed.
+
+* **Ephemeral nodes**: ephemeral nodes are automatically deleted when the client that created them disconnects from 
+the system. This feature can be used to detect failures.
+
+## Getting Started
+To use this project you just simply clone this repository using git and make sure you have a working version of 
+Java Development Kit. If not download it [here](https://www.oracle.com/technetwork/pt/java/javase/downloads/jdk8-downloads-2133151.html).
+
+```git
+  git clone https://github.com/twix14/DTI.git
+```
+
+## Deployment
+
+
+
 ---------- INICIAR OS SERVIDORES DO BFT-SMaRt-----------
 4 terminais/tabs cada um com uma instância servidor do bft, com ids diferentes
 java -cp bin/:lib/* bftmap.BFTMapServer *id*
