@@ -1,5 +1,5 @@
 # Coordination Service using BFT-SMaRt
-This project was made in a masters subject (Detection and Intrusion Tolerance), in the Faculty of Sciences of the University of Lisbon.
+This group project was built in a masters subject, Detection and Intrusion Tolerance, in the Faculty of Sciences of the University of Lisbon.
 It consists of a coordination service similar to [ZooKeeper](https://github.com/apache/zookeeper) using
 the [BFT-SMaRt replication library](http://bft-smart.github.io/library/)
 
@@ -20,26 +20,50 @@ the system. This feature can be used to detect failures.
 
 ## Getting Started
 To use this project you just simply clone this repository using git and make sure you have a working version of 
-Java Development Kit. If not download it [here](https://www.oracle.com/technetwork/pt/java/javase/downloads/jdk8-downloads-2133151.html).
+Java Runtime Environment (This project was built using **JavaSE-1.8**).
 
-```git
-  git clone https://github.com/twix14/DTI.git
+```
+git clone https://github.com/twix14/DTI.git
 ```
 
 ## Deployment
+Since this project uses the BFT-SMaRt library you need to set `3f + 1` replicas in order to tolerate f faults in any replica, this is because this library follows the Byzantine Fault Tolerance model in order to tolerate arbitrary faults.
 
+In order to test this project it's advised for you to run 4 local servers (**Currently it only works locally**) and as many clients as you like. **All these commands must be made inside the library-1.1-beta folder in order to work**
 
+For this project to work in a distributed environment you must change the config/hosts.config file with the necessary IPs.
 
----------- INICIAR OS SERVIDORES DO BFT-SMaRt-----------
-4 terminais/tabs cada um com uma instância servidor do bft, com ids diferentes
-java -cp bin/:lib/* bftmap.BFTMapServer *id*
+You can start a server like this (the *id* field must be unique):
 
+```
+java -cp bin/:lib/* bftmap.BFTMapServer id
+```
 
----------- INICIAR O CLIENTE ZooKeeper ----------------
-Iniciar o cliente num terminal/tab com um id difente dos servidores
-1º java -cp bin/:lib/* bftmap.ZKInteractiveClient *id* 
+You can start a client like this (the *id* field must be unique):
 
-2º Dentro do programa pode utilizar comandos create para criar um nó (usar esta / slash, forward slash!!)*, update para mudar os dados de um nó, watcher para colocar um watcher nesse nó que avisa se houve modificações de dados ou se ele foi removido,
-print para imprimir a totalidade do namespace, get para ir buscar a informação relativa a um nó, e remove para remover um nó
+```
+java -cp bin/:lib/* bftmap.ZKInteractiveClient id
+```
 
-*O primeiro nó tem de ser criado sem barra visto que não construímos todos os nós no caminho (ex. A/B/C só funciona se A/B já existir e A/B só funciona se A já existir)
+Inside the client you'll have several options listed:
+* **CREATE** 
+It will ask you for:
+  * The path in which to place a new node (use the forward slash). Nodes must be created as individuals, e.g first A and then A/B, and not just A/B
+  * The data to place on the node (only String is currently supported since the arguments written in
+the console, but internally, data is represented as bytes)
+  * If you want the node/folder to be ephemeral and/or sequential
+
+* **GET**
+  * Retrieves information about that node (children, data, timestamp of the last hearbeat received in case of being ephemeral)
+
+* **REMOVE**
+  * Deletes the node
+
+* **PRINT**
+  * Prints the hierarchical namespace
+
+* **WATCHER**
+  * Place watcher on node that notifies the client that placed watcher on him (one watcher at a time) about data modification or removal of node
+
+* **UPDATE**
+  * Update node data
