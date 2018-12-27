@@ -62,14 +62,21 @@ public class Zookeeper {
 		if(fi.isEphemeral()) {
 			String pathN = parentFI != null && parentFI.isSequential()? pathSeq : path;
 			
-			new Timer().schedule(new TimerTask() {
+			Timer t = new Timer();
+			TimerTask hearbeat = new TimerTask(){
 
 				@Override
 				public void run() {
 					//heartbeat
-					map.put(pathN, getNode(pathN).toByteArray());
+					NodeInfo<byte[]> node = getNode(pathN);
+					if(node != null) 
+						map.put(pathN, getNode(pathN).toByteArray());
+					else 
+						t.cancel();
 				}
-			},0, 1000);
+			};
+			
+			t.schedule(hearbeat, 0, 1000);
 		}
 
 		return true;

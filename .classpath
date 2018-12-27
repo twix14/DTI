@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry excluding="intol/" kind="src" path="library-1.1-beta/src"/>
 	<classpathentry kind="src" path="library-1.1-beta/src/intol"/>
-	<classpathentry kind="src" path="library-1.1-beta/test"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="library-1.1-beta/lib/commons-codec-1.5.jar"/>
 	<classpathentry kind="lib" path="library-1.1-beta/lib/core-0.1.4.jar"/>
 	<classpathentry kind="lib" path="library-1.1-beta/lib/netty-all-4.0.25.Final.jar"/>

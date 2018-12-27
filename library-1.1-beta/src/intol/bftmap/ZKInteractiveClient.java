@@ -71,7 +71,7 @@ public class ZKInteractiveClient {
 
 			} else if (cmd.equalsIgnoreCase("get")) {
 
-				String path = console.readLine("Ponha o path: ");
+				String path = console.readLine("Path: ");
 				NodeInfo<byte[]> node = zk.getNode(path);
 				System.out.println(node != null ? node : "The node doesn't exist or there was a problem");
 

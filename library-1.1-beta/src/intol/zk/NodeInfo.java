@@ -10,13 +10,6 @@ import java.util.List;
 
 public class NodeInfo<V> {
 
-	@Override
-	public String toString() {
-		return "NodeInfo [sequential=" + sequential + ", seq=" + seq + ", ephemeral=" + ephemeral + ", children="
-				+ children + ", data=" + new String((byte[])data) + "], watch=" + watch + ", name=" + name + ", timestamp=" + timestamp
-				+ "]";
-	}
-
 	private boolean sequential;
 	private int seq;
 	private boolean ephemeral;
@@ -179,6 +172,13 @@ public class NodeInfo<V> {
 	
 	public void setName(String name) {
 		this.name = name;
+	}
+	
+	@Override
+	public String toString() {
+		return "NodeInfo [sequential=" + sequential + ", seq=" + seq + ", ephemeral=" + ephemeral + ", children="
+				+ children + ", data=" + new String((byte[])data) + "], watch=" + watch + ", name=" + name + ", timestamp=" + timestamp
+				+ "]";
 	}
 
 }
